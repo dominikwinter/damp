@@ -1,0 +1,21 @@
+web:
+    build: .
+    volumes:
+        - ./www:/var/www/html
+    links:
+        - db:mysql
+    ports:
+        - 8080:80
+db:
+    image: mariadb
+    environment:
+        MYSQL_ROOT_PASSWORD: test
+phpmyadmin:
+    image: corbinu/docker-phpmyadmin
+    links:
+        - db:mysql
+    ports:
+        - 8181:80
+    environment:
+        MYSQL_USERNAME: root
+        MYSQL_ROOT_PASSWORD: test

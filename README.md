@@ -13,3 +13,9 @@ git clone git@github.com:dominikbechstein/damp.git
 cd damp
 docker-compose up
 ```
+
+# TODOs
+- permission problems with OSX
+- phpmyadmin container is not needed -> will use Sequal Pro
+- move TODOs to GitHub internal "Issues"
+- ..

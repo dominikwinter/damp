@@ -9,7 +9,7 @@ This Docker service provides a complete web server separated in three containers
 How to start:
 
 ```bash
-git clone git@github.com:dominikbechstein/damp.git
+git clone git@github.com:dominikwinter/damp.git
 cd damp
 docker-compose up
 ```

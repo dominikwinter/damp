@@ -3,32 +3,21 @@ services:
     web:
         build:          "./web"
         volumes:        [ "./web:/var/www/html" ]
-        ports:          [ "10000:80" ]
+        ports:          [ "80:80" ]
         links:          [ "db" ]
-        depends_on:     [ "db" ]
+        environment:
+            # set your uid and gid here
+            WEB_UID: 501
+            WEB_GID: 20
 
+    db-data:
+        image:          "busybox"
+        volumes:        [ "/var/lib/mysql" ]
     db:
-        image:          "mysql:5.6.27"
-        ports:          [ "10001:3306" ]
+        image:          "mariadb"
+        ports:          [ "3306:3306" ]
+        volumes_from:   [ "db-data" ]
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_HOST=db
-            - MYSQL_DATABASE=test
             - MYSQL_USER=user
             - MYSQL_PASSWORD=password
-        volumes:
-            - ./db/script:/script
-            - ./db/log:/var/log/mysql
-            - ./db/mysql:/var/lib/mysql
-
-        command: "/script/permissions.sh"
-
-
-    phpmyadmin:
-        image:          "corbinu/docker-phpmyadmin"
-        ports:          [ "10002:80" ]
-        links:          [ "db" ]
-        depends_on:     [ "db" ]
-        environment:
-            MYSQL_USERNAME:         "root"
-            MYSQL_ROOT_PASSWORD:    "test"

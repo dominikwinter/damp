@@ -5,10 +5,6 @@ services:
         volumes:        [ "./web:/var/www/html" ]
         ports:          [ "80:80" ]
         links:          [ "db" ]
-        environment:
-            # set your uid and gid here
-            WEB_UID: 501
-            WEB_GID: 20
 
     db-data:
         image:          "busybox"

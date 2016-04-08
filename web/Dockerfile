@@ -1,13 +1,13 @@
 FROM php:5.6-apache
+MAINTAINER Dominik Winter <info@edge-project.org>
 
-RUN a2enmod rewrite expires
+# docker-compose down; sleep 1; docker-compose rm -f; sleep 1; docker rmi damp_web; docker-compose up
 
-RUN \
-    usermod  -o -u $(stat -c "%u" /var/www/html) www-data \
-    groupmod -o -g $(stat -c "%g" /var/www/html) www-data \
-    sed -i "/Options/c\  Options Indexes FollowSymLinks" /etc/apache2/apache2.conf \
-    echo "date.timezone = UTC" > /usr/local/etc/php/conf.d/date_timezone.ini
+# RUN a2enmod rewrite expires
 
 VOLUME /var/www/html
 
-CMD ["apache2-foreground"]
+COPY web-init.sh /
+RUN chmod +x /web-init.sh
+ENTRYPOINT ["/web-init.sh"]
+

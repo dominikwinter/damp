@@ -1,4 +1,4 @@
-FROM php:5.6-apache
+FROM php:apache
 MAINTAINER Dominik Winter <info@edge-project.org>
 
 # docker-compose down; sleep 1; docker-compose rm -f; sleep 1; docker rmi damp_web; docker-compose up

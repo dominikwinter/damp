@@ -8,6 +8,7 @@ ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
 RUN \
     apt-get update &&                               \
     apt-get install --no-install-recommends -y      \
+        curl                                        \
         apache2                                     \
         libapache2-mod-php7.0                       \
         php7.0                                      \

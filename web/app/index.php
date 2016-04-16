@@ -1,7 +1,5 @@
 <?php
 
-
-
 class Test
 {
     public function __construct()
@@ -11,4 +9,3 @@ class Test
 }
 
 new Test;
-

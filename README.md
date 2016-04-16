@@ -1,4 +1,4 @@
-# Full Stack Docker Apache MySQL PHP Environment
+# Full Stack Docker Apache MySQL PHP Environment for Development
 
 This Docker service provides a complete web server separated in three containers for your local development environment.
 

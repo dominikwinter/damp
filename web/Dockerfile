@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM debian:stretch
 MAINTAINER Dominik Winter <info@edge-project.org>
 
 # prevent warnings

@@ -2,9 +2,9 @@
 
 This Docker service provides a complete web server separated in three containers for your local development environment.
 
-- Apache
-- PHP 7
-- MySQL
+- Apache 2.4
+- PHP 7.0
+- MariaDB 10.1
 
 How to start:
 

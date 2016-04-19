@@ -17,7 +17,7 @@ docker-machine start
 eval $(docker-machine env)
 
 # start containers
-docker-compose up
+docker-compose up -d
 ```
 
 Enter Docker Environment (eg. to install composer)

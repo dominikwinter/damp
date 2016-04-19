@@ -8,6 +8,7 @@ ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
 RUN \
     apt-get update &&                               \
     apt-get install --no-install-recommends -y      \
+        vim                                         \
         curl                                        \
         apache2                                     \
         libapache2-mod-php7.0                       \
@@ -41,6 +42,7 @@ RUN \
 </IfModule>\n\
 " >> /etc/apache2/mods-enabled/php7.0.conf ;\
     sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/" /etc/apache2/envvars ;\
+    sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g" /etc/apache2/apache2.conf ;\
     echo "ServerName localhost" > /etc/apache2/conf-enabled/servername.conf
 
 # enable mods
@@ -51,6 +53,6 @@ VOLUME /var/www/html
 
 EXPOSE 80
 
-COPY web-init.sh /
-RUN chmod +x /web-init.sh
-ENTRYPOINT ["/web-init.sh"]
+COPY web.sh /
+RUN chmod +x /web.sh
+ENTRYPOINT ["/web.sh"]

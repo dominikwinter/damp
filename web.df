@@ -26,7 +26,8 @@ RUN \
         php7.0-phar                                 \
         php7.0-tokenizer                            \
         php7.0-xml                                  \
-        php7.0-zip
+        php7.0-zip                                  \
+        mariadb-client
 
 # configurations
 RUN \

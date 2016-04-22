@@ -5,6 +5,7 @@ This Docker service provides a complete web server separated in three containers
 - Apache 2.4
 - PHP 7.0
 - MariaDB 10.1
+- Composer
 
 How to start:
 
@@ -29,8 +30,4 @@ eval $(docker-machine env)
 
 # enter docker environment
 docker exec -it damp_web_1 bash
-
-# install composer
-curl -s http://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
 ```

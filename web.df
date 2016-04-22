@@ -50,6 +50,9 @@ RUN \
 # enable mods
 RUN a2dismod mpm_event && a2enmod mpm_prefork rewrite expires headers
 
+# install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 WORKDIR /var/www/html
 VOLUME /var/www/html
 

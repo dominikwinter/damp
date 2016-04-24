@@ -4,60 +4,77 @@ MAINTAINER Dominik Winter <info@edge-project.org>
 # prevent warnings
 ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
 
-# install apache2 and php7
-RUN \
-    apt-get update &&                               \
-    apt-get install --no-install-recommends -y      \
-        vim                                         \
-        curl                                        \
-        apache2                                     \
-        libapache2-mod-php7.0                       \
-        php7.0                                      \
-        php7.0-cli                                  \
-        php7.0-curl                                 \
-        php7.0-gd                                   \
-        php7.0-json                                 \
-        php7.0-mbstring                             \
-        php7.0-mcrypt                               \
-        php7.0-pdo                                  \
-        php7.0-pdo-mysql                            \
-        php7.0-pdo-pgsql                            \
-        php7.0-pdo-sqlite                           \
-        php7.0-phar                                 \
-        php7.0-tokenizer                            \
-        php7.0-xml                                  \
-        php7.0-zip                                  \
-        mariadb-client
+# let's go
+RUN true \
+;   apt-get update                                          \
 
-# configurations
-RUN \
-    rm -rf /var/lib/apt/lists/* ;\
-    mkdir -p /var/www/html ;\
-    chown -R www-data:www-data /var/www/html ;\
-    sed -ie "\
-        s/^;?\s*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/;\
-        s/^;?date.timezone\s*=.*$/date.timezone = Europe\/Berlin/;\
-    " /etc/php/7.0/apache2/php.ini ;\
-    echo "\n\
+#############################################################
+# install apache, php, mysql client and other useful stuff  #
+#############################################################
+;   apt-get install --no-install-recommends -y              \
+        vim                                                 \
+        curl                                                \
+        apache2                                             \
+        libapache2-mod-php7.0                               \
+        php7.0                                              \
+        php7.0-cli                                          \
+        php7.0-curl                                         \
+        php7.0-gd                                           \
+        php7.0-json                                         \
+        php7.0-mbstring                                     \
+        php7.0-mcrypt                                       \
+        php7.0-pdo                                          \
+        php7.0-pdo-mysql                                    \
+        php7.0-pdo-pgsql                                    \
+        php7.0-pdo-sqlite                                   \
+        php7.0-phar                                         \
+        php7.0-tokenizer                                    \
+        php7.0-xml                                          \
+        php7.0-zip                                          \
+        mariadb-client                                      \
+
+#############################################################
+# configurations                                            #
+#############################################################
+
+# remove downloaded deb files for smaller image size
+;   rm -rf /var/lib/apt/lists/*                                                                             \
+
+# setting up document root
+;   mkdir -p /var/www/html                                                                                  \
+;   chown -R www-data:www-data /var/www/html                                                                \
+
+# set pathinfo and time zone
+;   sed -ie "s/^;?\s*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/"        /etc/php/7.0/apache2/php.ini    \
+;   sed -ie "s/^;?date.timezone\s*=.*$/date.timezone = Europe\/Berlin/"     /etc/php/7.0/apache2/php.ini    \
+
+# handle php files
+;   echo "\n\
 <IfModule php7_module>\n\
     AddType application/x-httpd-php .php .phtml .php3 .php4 .php5 .php7\n\
-</IfModule>\n\
-" >> /etc/apache2/mods-enabled/php7.0.conf ;\
-    sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/" /etc/apache2/envvars ;\
-    sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g" /etc/apache2/apache2.conf ;\
-    echo "ServerName localhost" > /etc/apache2/conf-enabled/servername.conf
+</IfModule>\n" >> /etc/apache2/mods-enabled/php7.0.conf                                                     \
 
-# enable mods
-RUN a2dismod mpm_event && a2enmod mpm_prefork rewrite expires headers
+# start apache as daemon
+;   sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/" /etc/apache2/envvars  \
+
+# allow override
+;   sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g" /etc/apache2/apache2.conf                       \
+
+# set server name
+;   echo "ServerName localhost" > /etc/apache2/conf-enabled/servername.conf                                 \
+
+# enable / disable apache modules
+;   a2dismod    mpm_event                                                                                   \
+;   a2enmod     mpm_prefork rewrite expires headers                                                         \
 
 # install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /var/www/html
-VOLUME /var/www/html
+VOLUME  /var/www/html
 
 EXPOSE 80
 
 COPY web.sh /
 RUN chmod +x /web.sh
-ENTRYPOINT ["/web.sh"]
+ENTRYPOINT /web.sh

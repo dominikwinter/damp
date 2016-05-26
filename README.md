@@ -4,6 +4,7 @@ This Docker service provides a complete web server separated in three containers
 
 - Apache 2.4
 - PHP 7.0
+- XDebug 2.4
 - MariaDB 10.1
 - Composer
 

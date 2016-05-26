@@ -2,21 +2,22 @@ version: "2"
 services:
     web:
         build:
-            context:        "."
-            dockerfile:     "web.df"
-        volumes:        [ "./html:/var/www/html" ]
-        ports:          [ "80:80" ]
-        links:          [ "db" ]
-
-    db-data:
-        image:          "busybox"
-        volumes:        [ "/var/lib/mysql" ]
+            context:    "."
+            dockerfile: "web.df"
+        volumes:  [ "./html:/var/www/html" ]
+        ports:    [ "80:80", "9000:9000" ]
+        links:    [ "db" ]
 
     db:
-        image:          "mariadb"
-        ports:          [ "3306:3306" ]
-        volumes_from:   [ "db-data" ]
+        image:    "mariadb"
+        ports:    [ "3306:3306" ]
+        volumes:  [ "db-data:/var/lib/mysql" ]
         environment:
             - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=cake
             - MYSQL_USER=user
             - MYSQL_PASSWORD=password
+
+volumes:
+    db-data:
+        driver: local

@@ -75,7 +75,7 @@ xdebug.remote_enable        = on\n\
 xdebug.remote_host          = localhost\n\
 xdebug.remote_port          = 9000\n\
 xdebug.remote_handler       = dbgp\n\
-xdebug.idekey               = xdebug\n
+xdebug.idekey               = xdebug\n\
 xdebug.remote_connect_back  = on\n\
 " >> /etc/php/7.0/mods-available/xdebug.ini                                                                 \
 

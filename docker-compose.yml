@@ -3,8 +3,10 @@ services:
     web:
         build:
             context:    "."
-            dockerfile: "web.df"
-        volumes:  [ "./html:/var/www/html" ]
+            # switch between php5 or php7
+            #dockerfile: "web5.df"
+            dockerfile: "web7.df"
+        volumes:  [ "../:/var/www/html" ]
         ports:    [ "80:80", "9000:9000" ]
         links:    [ "db" ]
 

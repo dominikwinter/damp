@@ -1,0 +1,79 @@
+FROM debian:jessie
+MAINTAINER Dominik Winter <info@edge-project.org>
+
+# prevent warnings
+ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
+
+# let's go
+RUN true \
+;   apt-get update                                          \
+
+#############################################################
+# install apache, php, mysql client and other useful stuff  #
+#############################################################
+;   apt-get install --no-install-recommends -y              \
+        vim                                                 \
+        curl                                                \
+        apache2                                             \
+        libapache2-mod-php5                                 \
+        php5                                                \
+        php5-cli                                            \
+        php5-curl                                           \
+        php5-gd                                             \
+        php5-json                                           \
+        php5-mcrypt                                         \
+        php5-mysql                                          \
+        php5-pgsql                                          \
+        php5-sqlite                                         \
+        php5-xdebug                                         \
+        mariadb-client                                      \
+
+#############################################################
+# configurations                                            #
+#############################################################
+
+# remove downloaded deb files for smaller image size
+;   rm -rf /var/lib/apt/lists/*                                                                             \
+
+# setting up document root
+;   mkdir -p /var/www/html                                                                                  \
+;   chown -R www-data:www-data /var/www/html                                                                \
+
+# set pathinfo and time zone
+;   sed -ie "s/^.*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/"           /etc/php5/apache2/php.ini       \
+;   sed -ie "s/^.*date.timezone\s*=.*$/date.timezone = Europe\/Berlin/"     /etc/php5/apache2/php.ini       \
+
+# start apache as daemon
+;   sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/" /etc/apache2/envvars  \
+
+# allow override
+;   sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g" /etc/apache2/apache2.conf                       \
+
+# set server name
+;   echo "ServerName localhost" > /etc/apache2/conf-enabled/servername.conf                                 \
+
+# enable / disable apache modules
+;   a2dismod    mpm_event                                                                                   \
+;   a2enmod     mpm_prefork rewrite expires headers                                                         \
+
+# configure xdebug
+;   echo "\n\
+xdebug.remote_enable        = on\n\
+xdebug.remote_host          = localhost\n\
+xdebug.remote_port          = 9000\n\
+xdebug.remote_handler       = dbgp\n\
+xdebug.idekey               = xdebug\n\
+xdebug.remote_connect_back  = on\n\
+" >> /etc/php5/mods-available/xdebug.ini                                                                    \
+
+# install composer
+;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www/html
+VOLUME  /var/www/html
+
+EXPOSE 80
+
+COPY web.sh /
+RUN chmod +x /web.sh
+ENTRYPOINT /web.sh

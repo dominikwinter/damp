@@ -14,6 +14,7 @@ RUN true \
 ;   apt-get install --no-install-recommends -y              \
         vim                                                 \
         curl                                                \
+        unzip                                               \
         apache2                                             \
         libapache2-mod-php7.0                               \
         php7.0                                              \
@@ -23,6 +24,7 @@ RUN true \
         php7.0-json                                         \
         php7.0-mbstring                                     \
         php7.0-mcrypt                                       \
+        php7.0-mongodb                                      \
         php7.0-pdo                                          \
         php7.0-pdo-mysql                                    \
         php7.0-pdo-pgsql                                    \
@@ -33,6 +35,8 @@ RUN true \
         php7.0-zip                                          \
         php7.0-xdebug                                       \
         mariadb-client                                      \
+        php-xhprof                                          \
+        mongodb                                             \
 
 #############################################################
 # configurations                                            #
@@ -42,8 +46,9 @@ RUN true \
 ;   rm -rf /var/lib/apt/lists/*                                                                             \
 
 # setting up document root
-;   mkdir -p /var/www/html                                                                                  \
-;   chown -R www-data:www-data /var/www/html                                                                \
+;   mkdir -p /var/www/html/mount                                                                            \
+;   rm -f /var/www/html/index.html                                                                          \
+;   chown www-data:www-data /var/www/html                                                                   \
 
 # set pathinfo and time zone
 ;   sed -ie "s/^;?\s*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/"        /etc/php/7.0/apache2/php.ini    \
@@ -80,7 +85,40 @@ xdebug.remote_connect_back  = on\n\
 " >> /etc/php/7.0/mods-available/xdebug.ini                                                                 \
 
 # install composer
-;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer   \
+
+# install xhgui
+; mongo --eval "\n\
+use xhprof;\n\
+db.results.ensureIndex( { 'meta.SERVER.REQUEST_TIME' : -1 } );\n\
+db.results.ensureIndex( { 'profile.main().wt' : -1 } );\n\
+db.results.ensureIndex( { 'profile.main().mu' : -1 } );\n\
+db.results.ensureIndex( { 'profile.main().cpu' : -1 } );\n\
+db.results.ensureIndex( { 'meta.url' : 1 } );\n\
+"                                                                                                           \
+;   sed -i "s/^auto_prepend_file\s*=.*$/auto_prepend_file = \/var\/www\/html\/xhgui-master\/external\/header.php/"     /etc/php/7.0/apache2/php.ini    \
+;   cd /var/www/html                                                                                        \
+;   curl -LOk https://github.com/perftools/xhgui/archive/master.zip                                         \
+;   unzip master.zip                                                                                        \
+;   rm -f master.zip                                                                                        \
+;   chmod -R 2777 /var/www/html/xhgui-master/cache                                                          \
+;   cd /var/www/html/xhgui-master                                                                           \
+;   composer update --prefer-dist                                                                           \
+;   echo "<?php\n\
+return array(\n\
+    'debug' => false,\n\
+    'mode' => 'development',\n\
+    'save.handler' => 'mongodb',\n\
+    'db.host' => 'mongodb://127.0.0.1:27017',\n\
+    'db.db' => 'xhprof',\n\
+    'templates.path' => dirname(__DIR__) . '/src/templates',\n\
+    'date.format' => 'Y-m-d H:i:s',\n\
+    'detail.count' => 12,\n\
+    'page.limit' => 50,\n\
+    'profiler.enable' => function() { return true; },\n\
+    'profiler.simple_url' => function(\$url) { return preg_replace('/\=\d+/', '', \$url); },\n\
+);\n\
+" > /var/www/html/xhgui-master/config/config.php
 
 WORKDIR /var/www/html
 VOLUME  /var/www/html

@@ -7,6 +7,7 @@ This Docker service provides a complete web server separated in three containers
 - XDebug 2.4
 - MariaDB 10.1
 - Composer
+- XHProf + xhgui
 
 How to start:
 

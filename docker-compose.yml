@@ -6,7 +6,7 @@ services:
             # switch between php5 or php7
             #dockerfile: "web5.df"
             dockerfile: "web7.df"
-        volumes:  [ "../:/var/www/html" ]
+        volumes:  [ "../:/var/www/html/mount" ]
         ports:    [ "80:80", "9000:9000" ]
         links:    [ "db" ]
 

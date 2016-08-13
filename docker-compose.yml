@@ -8,9 +8,11 @@ services:
             dockerfile: "web7.df"
         volumes:  [ "../:/var/www/html/mount" ]
         ports:    [ "80:80", "9000:9000" ]
-        links:    [ "db" ]
+        links:
+            - "mysql"
+            - "mongo"
 
-    db:
+    mysql:
         image:    "mariadb"
         ports:    [ "3306:3306" ]
         volumes:  [ "db-data:/var/lib/mysql" ]
@@ -19,6 +21,8 @@ services:
             - MYSQL_DATABASE=cake
             - MYSQL_USER=user
             - MYSQL_PASSWORD=password
+    mongo:
+        image: "mongo"
 
 volumes:
     db-data:

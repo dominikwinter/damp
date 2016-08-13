@@ -4,6 +4,8 @@ MAINTAINER Dominik Winter <info@edge-project.org>
 # prevent warnings
 ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
 
+ADD configs /configs
+
 # let's go
 RUN true \
 ;   apt-get update                                          \
@@ -36,7 +38,7 @@ RUN true \
         php7.0-xdebug                                       \
         mariadb-client                                      \
         php-xhprof                                          \
-        mongodb                                             \
+        mongodb-clients                                     \
 
 #############################################################
 # configurations                                            #
@@ -75,50 +77,23 @@ RUN true \
 ;   a2enmod     mpm_prefork rewrite expires headers                                                         \
 
 # configure xdebug
-;   echo "\n\
-xdebug.remote_enable        = on\n\
-xdebug.remote_host          = localhost\n\
-xdebug.remote_port          = 9000\n\
-xdebug.remote_handler       = dbgp\n\
-xdebug.idekey               = xdebug\n\
-xdebug.remote_connect_back  = on\n\
-" >> /etc/php/7.0/mods-available/xdebug.ini                                                                 \
+;   mv /configs/xdebug.ini /etc/php/7.0/mods-available/xdebug.ini                                           \
 
 # install composer
 ;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer   \
 
 # install xhgui
-; mongo --eval "\n\
-use xhprof;\n\
-db.results.ensureIndex( { 'meta.SERVER.REQUEST_TIME' : -1 } );\n\
-db.results.ensureIndex( { 'profile.main().wt' : -1 } );\n\
-db.results.ensureIndex( { 'profile.main().mu' : -1 } );\n\
-db.results.ensureIndex( { 'profile.main().cpu' : -1 } );\n\
-db.results.ensureIndex( { 'meta.url' : 1 } );\n\
-"                                                                                                           \
-;   sed -i "s/^auto_prepend_file\s*=.*$/auto_prepend_file = \/var\/www\/html\/xhgui-master\/external\/header.php/"     /etc/php/7.0/apache2/php.ini    \
+;   sed -i "s/^auto_prepend_file\s*=.*$/auto_prepend_file = \/var\/www\/html\/xhgui\/external\/header.php/"     /etc/php/7.0/apache2/php.ini    \
+;   mongo --host mongo /configs/xhgui.mongo.js                                                              \
 ;   cd /var/www/html                                                                                        \
-;   curl -LOk https://github.com/perftools/xhgui/archive/master.zip                                         \
+;   curl -LOks https://github.com/perftools/xhgui/archive/master.zip                                        \
 ;   unzip master.zip                                                                                        \
 ;   rm -f master.zip                                                                                        \
-;   chmod -R 2777 /var/www/html/xhgui-master/cache                                                          \
-;   cd /var/www/html/xhgui-master                                                                           \
+;   mv xhgui-master xhgui                                                                                   \
+;   chmod -R 2777 /var/www/html/xhgui/cache                                                                 \
+;   cd /var/www/html/xhgui                                                                                  \
 ;   composer update --prefer-dist                                                                           \
-;   echo "<?php\n\
-return array(\n\
-    'debug' => false,\n\
-    'mode' => 'development',\n\
-    'save.handler' => 'mongodb',\n\
-    'db.host' => 'mongodb://127.0.0.1:27017',\n\
-    'db.db' => 'xhprof',\n\
-    'templates.path' => dirname(__DIR__) . '/src/templates',\n\
-    'date.format' => 'Y-m-d H:i:s',\n\
-    'detail.count' => 12,\n\
-    'page.limit' => 50,\n\
-    'profiler.enable' => function() { return true; },\n\
-    'profiler.simple_url' => function(\$url) { return preg_replace('/\=\d+/', '', \$url); },\n\
-);\n\
-" > /var/www/html/xhgui-master/config/config.php
+;   mv /configs/xhgui.php /var/www/html/xhgui/config/config.php
 
 WORKDIR /var/www/html
 VOLUME  /var/www/html

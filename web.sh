@@ -15,8 +15,6 @@ if ! grep -q "stretch" /etc/issue; then
 
     usermod  -o -u $HOST_UID $WWW_USER
     groupmod -o -g $HOST_GID $WWW_GROUP
-else
-    service mongodb start
 fi
 
 service apache2 start

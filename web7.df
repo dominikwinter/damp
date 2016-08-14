@@ -4,16 +4,14 @@ MAINTAINER Dominik Winter <info@edge-project.org>
 # prevent warnings
 ENV TERM=xterm DEBIAN_FRONTEND=noninteractive
 
-# let's go
+ADD configs /configs
+
 RUN true \
 ;   apt-get update                                          \
-
-#############################################################
-# install apache, php, mysql client and other useful stuff  #
-#############################################################
 ;   apt-get install --no-install-recommends -y              \
         vim                                                 \
         curl                                                \
+        unzip                                               \
         apache2                                             \
         libapache2-mod-php7.0                               \
         php7.0                                              \
@@ -23,6 +21,7 @@ RUN true \
         php7.0-json                                         \
         php7.0-mbstring                                     \
         php7.0-mcrypt                                       \
+        php7.0-mongodb                                      \
         php7.0-pdo                                          \
         php7.0-pdo-mysql                                    \
         php7.0-pdo-pgsql                                    \
@@ -33,54 +32,44 @@ RUN true \
         php7.0-zip                                          \
         php7.0-xdebug                                       \
         mariadb-client                                      \
+        php-xhprof                                          \
+        mongodb-clients                                     \
+;   rm -rf /var/lib/apt/lists/*
 
-#############################################################
-# configurations                                            #
-#############################################################
 
-# remove downloaded deb files for smaller image size
-;   rm -rf /var/lib/apt/lists/*                                                                             \
+RUN true \
+;   mkdir -p /var/www/html/mount            \
+;   rm -f /var/www/html/index.html          \
+;   chown www-data:www-data /var/www/html   \
 
-# setting up document root
-;   mkdir -p /var/www/html                                                                                  \
-;   chown -R www-data:www-data /var/www/html                                                                \
+# php
+;   sed -ie "s/^;?\s*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/"                    /etc/php/7.0/apache2/php.ini                \
+;   sed -ie "s/^;?date.timezone\s*=.*$/date.timezone = Europe\/Berlin/"                 /etc/php/7.0/apache2/php.ini                \
+;   mv /configs/xdebug.ini                                                              /etc/php/7.0/mods-available/xdebug.ini      \
 
-# set pathinfo and time zone
-;   sed -ie "s/^;?\s*cgi\.fix_pathinfo\s*=.*$/cgi.fix_pathinfo = 0/"        /etc/php/7.0/apache2/php.ini    \
-;   sed -ie "s/^;?date.timezone\s*=.*$/date.timezone = Europe\/Berlin/"     /etc/php/7.0/apache2/php.ini    \
+# apache
+;   sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/"   /etc/apache2/envvars                        \
+;   sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g"                             /etc/apache2/apache2.conf                   \
+;   echo "ServerName localhost" >                                                       /etc/apache2/conf-enabled/servername.conf   \
 
-# handle php files
-;   echo "\n\
-<IfModule php7_module>\n\
-    AddType application/x-httpd-php .php .phtml .php3 .php4 .php5 .php7\n\
-</IfModule>\n\
-" >> /etc/apache2/mods-enabled/php7.0.conf                                                                  \
+;   a2dismod    mpm_event                           \
+;   a2enmod     mpm_prefork rewrite expires headers \
 
-# start apache as daemon
-;   sed -ie "s/^#export APACHE_ARGUMENTS.*$/export APACHE_ARGUMENTS='-D FOREGROUND'/" /etc/apache2/envvars  \
+# composer
+;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer   \
 
-# allow override
-;   sed -ie "s/^\tAllowOverride None/\tAllowOverride All/g" /etc/apache2/apache2.conf                       \
-
-# set server name
-;   echo "ServerName localhost" > /etc/apache2/conf-enabled/servername.conf                                 \
-
-# enable / disable apache modules
-;   a2dismod    mpm_event                                                                                   \
-;   a2enmod     mpm_prefork rewrite expires headers                                                         \
-
-# configure xdebug
-;   echo "\n\
-xdebug.remote_enable        = on\n\
-xdebug.remote_host          = localhost\n\
-xdebug.remote_port          = 9000\n\
-xdebug.remote_handler       = dbgp\n\
-xdebug.idekey               = xdebug\n\
-xdebug.remote_connect_back  = on\n\
-" >> /etc/php/7.0/mods-available/xdebug.ini                                                                 \
-
-# install composer
-;   curl -sSk https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# xhgui
+;   sed -i "s/^auto_prepend_file\s*=.*$/auto_prepend_file = \/var\/www\/xhgui\/external\/header.php/" /etc/php/7.0/apache2/php.ini    \
+;   cd /var/www                                                         \
+;   curl -LOks https://github.com/perftools/xhgui/archive/master.zip    \
+;   unzip -q master.zip                                                 \
+;   rm -f master.zip                                                    \
+;   mv xhgui-master xhgui                                               \
+;   chmod -R 2777 xhgui/cache                                           \
+;   cd xhgui                                                            \
+;   composer update --quiet --prefer-dist                               \
+;   mv /configs/xhgui.php config/config.php                             \
+;   ln -s ../xhgui/webroot ../html/xhgui
 
 WORKDIR /var/www/html
 VOLUME  /var/www/html

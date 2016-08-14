@@ -1,21 +1,11 @@
 version: "2"
 services:
-    web:
-        build:
-            context:    "."
-            # switch between php5 or php7
-            #dockerfile: "web5.df"
-            dockerfile: "web7.df"
-        volumes:  [ "../:/var/www/html/mount" ]
-        ports:    [ "80:80", "9000:9000" ]
-        links:
-            - "mysql"
-            - "mongo"
-
     mysql:
-        image:    "mariadb"
-        ports:    [ "3306:3306" ]
-        volumes:  [ "db-data:/var/lib/mysql" ]
+        image: "mariadb"
+        ports:
+            - "3306:3306"
+        volumes:
+            - "mysql-data:/var/lib/mysql"
         environment:
             - MYSQL_ROOT_PASSWORD=root
             - MYSQL_DATABASE=cake
@@ -23,7 +13,29 @@ services:
             - MYSQL_PASSWORD=password
     mongo:
         image: "mongo"
+        volumes:
+            - "mongo-data:/data/db"
+
+    web:
+        build:
+            context: "."
+            # switch between php5 or php7
+            #dockerfile: "web5.df"
+            dockerfile: "web7.df"
+        volumes:
+            - "../:/var/www/html/mount"
+        ports:
+            - "80:80"
+            - "9000:9000"
+        depends_on:
+            - "mysql"
+            - "mongo"
+        links:
+            - "mysql"
+            - "mongo"
 
 volumes:
-    db-data:
+    mysql-data:
+        driver: local
+    mongo-data:
         driver: local

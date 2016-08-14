@@ -15,6 +15,8 @@ if ! grep -q "stretch" /etc/issue; then
 
     usermod  -o -u $HOST_UID $WWW_USER
     groupmod -o -g $HOST_GID $WWW_GROUP
+else
+    mongo --host mongo /configs/xhgui.mongo.js
 fi
 
 service apache2 start

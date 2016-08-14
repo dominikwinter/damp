@@ -4,7 +4,7 @@ return [
     'debug'                 => false,
     'mode'                  => 'development',
     'save.handler'          => 'mongodb',
-    'db.host'               => 'mongodb://127.0.0.1:27017',
+    'db.host'               => 'mongodb://mongo:27017',
     'db.db'                 => 'xhprof',
     'templates.path'        => dirname(__DIR__) . '/src/templates',
     'date.format'           => 'Y-m-d H:i:s',
